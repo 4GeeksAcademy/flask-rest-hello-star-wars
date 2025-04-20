@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User, Personajes, Planetas, Favoritos
 #from models import Person
 
 app = Flask(__name__)
@@ -44,6 +44,47 @@ def handle_hello():
     }
 
     return jsonify(response_body), 200
+
+
+@app.route('/users', methods=['GET'])
+def get_all_users():
+    users = User.query.all()
+    return jsonify([{"id": u.id, "email": u.email} for u in users]), 200
+
+@app.route('/people', methods=['GET'])
+def get_all_people():
+    personajes = Personajes.query.all()
+    return jsonify([p.serialize() for p in personajes]), 200
+
+@app.route('/people/<int:people_id>', methods=['GET'])
+def get_one_person(people_id):
+    personaje = Personajes.query.get(people_id)
+    if not personaje:
+        return jsonify({"error": "Personaje no encontrado"}), 404
+    return jsonify(personaje.serialize()), 200
+
+@app.route('/planeta', methods=['GET'])
+def get_all_planetas():
+    planetas = Planetas.query.all()
+    return jsonify([p.serialize() for p in planetas]), 200
+
+@app.route('/planetas/<int:planetas_id>', methods=['GET'])
+def get_one_planets(planetas_id):
+    planetas = Planetas.query.get(planetas_id)
+    if not planetas:
+        return jsonify({"error": "Personaje no encontrado"}), 404
+    return jsonify(planetas.serialize()), 200
+
+@app.route('/users/favoritos', methods=['GET'])
+def get_user_favoritos():
+    user = User.query.first()  
+    favoritos = Favoritos.query.filter_by(user_id=user.id).all()
+    return jsonify([f.serialize() for f in favoritos]), 200
+
+
+
+
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
